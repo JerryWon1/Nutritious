@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nutritious Demo Page</title>
+    <style>
+      body {
+        font-family: Inter, system-ui, -apple-system, sans-serif;
+        margin: 0;
+        background: #f6f8fb;
+        color: #151922;
+      }
+      .container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 28px 18px 40px;
+      }
+      h1 {
+        margin: 0 0 8px;
+      }
+      p {
+        margin: 0 0 18px;
+      }
+      .menu-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 14px;
+      }
+      .card {
+        background: #fff;
+        border: 1px solid #d9e0ea;
+        border-radius: 10px;
+        padding: 12px;
+      }
+      .restaurant {
+        font-size: 12px;
+        font-weight: 700;
+        color: #4d607a;
+        margin-bottom: 6px;
+      }
+      .item {
+        font-size: 16px;
+        font-weight: 600;
+      }
+      .hint {
+        margin-top: 26px;
+        background: #eef4ff;
+        border: 1px solid #cddcfb;
+        border-radius: 8px;
+        padding: 12px;
+        font-size: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="container">
+      <h1>Nutritious Menu Scanner Demo</h1>
+      <p>
+        This page includes both known database items and unknown items so you can test exact
+        matches plus estimation fallback quickly.
+      </p>
+
+      <section class="menu-grid">
+        <article class="card">
+          <div class="restaurant">McDonald's</div>
+          <div class="item">Big Mac</div>
+        </article>
+        <article class="card">
+          <div class="restaurant">Chipotle</div>
+          <div class="item">Chicken Burrito Bowl</div>
+        </article>
+        <article class="card">
+          <div class="restaurant">Taco Bell (card-style copy)</div>
+          <div class="item">
+            Soft Taco $1.99 | 180 Cal
+            <br />
+            ADD TO ORDER
+          </div>
+        </article>
+        <article class="card">
+          <div class="restaurant">Subway</div>
+          <div class="item">6-inch Turkey Breast</div>
+        </article>
+        <article class="card">
+          <div class="restaurant">Panda Express</div>
+          <div class="item">Orange Chicken</div>
+        </article>
+        <article class="card">
+          <div class="restaurant">Starbucks</div>
+          <div class="item">Spinach Feta Wrap</div>
+        </article>
+        <article class="card">
+          <div class="restaurant">Chick-fil-A</div>
+          <div class="item">8-count Grilled Nuggets</div>
+        </article>
+        <article class="card">
+          <div class="restaurant">Campus Cafe</div>
+          <div class="item">Mediterranean Protein Bowl</div>
+        </article>
+        <article class="card">
+          <div class="restaurant">Campus Cafe</div>
+          <div class="item">Spicy Crunch Chicken Wrap</div>
+        </article>
+        <article class="card">
+          <div class="restaurant">Food Truck</div>
+          <div class="item">Garlic Steak Rice Plate</div>
+        </article>
+        <article class="card">
+          <div class="restaurant">Dining Commons</div>
+          <div class="item">Vegan Power Salad</div>
+        </article>
+        <article class="card">
+          <div class="restaurant">Late Night Spot</div>
+          <div class="item">Loaded Bacon Fries Basket</div>
+        </article>
+      </section>
+
+      <div class="hint">
+        Tip: Open the Nutritious popup, go to Menu Items, and click Refresh current page. You
+        should see Exact and Estimated badges in the item list.
+      </div>
+    </main>
+  </body>
+</html>
