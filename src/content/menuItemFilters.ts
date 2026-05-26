@@ -69,8 +69,30 @@ function wordOrPluralPattern(word: string): string {
   return `(?:${esc}|${esc}s?)`;
 }
 
+/** Consent / CMP UI — not bakery items (FOOD_HINT_WORDS includes "cookie"). */
+function isCookieOrPrivacyChrome(normalized: string): boolean {
+  if (!/\bcookies?\b/.test(normalized)) {
+    return /\b(ad settings|preference center|opens the preference|privacy (settings|choices)|consent preferences|tracking preferences)\b/.test(
+      normalized
+    );
+  }
+  if (
+    /\b(chocolate|oatmeal|sugar|chip|snickerdoodle|macadamia|birthday|gingerbread|shortbread|peanut butter)\b/.test(
+      normalized
+    )
+  ) {
+    return false;
+  }
+  return /\b(ad|ads|advertising|settings|preferences|preference|consent|privacy|tracking|banner|cmp)\b/.test(
+    normalized
+  );
+}
+
 /** Match whole tokens only (avoids "taco" inside unrelated tokens when combined with denies). */
 export function hasFoodWordHint(normalized: string): boolean {
+  if (isCookieOrPrivacyChrome(normalized)) {
+    return false;
+  }
   for (const w of FOOD_HINT_WORDS) {
     const pat = new RegExp(`(^|\\s)${wordOrPluralPattern(w)}(\\s|$)`);
     if (pat.test(normalized)) {
@@ -93,6 +115,20 @@ export function singleWordMenuAllowed(normalized: string): boolean {
 }
 
 const DENY_SUBSTRINGS_NORMALIZED = [
+  "cookie and ad settings",
+  "cookies and ad settings",
+  "cookie ad settings",
+  "ad settings",
+  "preference center",
+  "opens the preference",
+  "manage cookies",
+  "manage cookie",
+  "privacy settings",
+  "your privacy choices",
+  "do not sell",
+  "consent preferences",
+  "tracking preferences",
+  "estimated",
   "taco bell home",
   "skip to content",
   "skip to main",
@@ -306,6 +342,21 @@ function looksLikeLongMarketingSentence(displayText: string, normalized: string)
   return false;
 }
 
+/** Drop consent banners, a11y boilerplate, and bare "Estimated" before showing in the popup. */
+export function isJunkMenuLabel(displayText: string): boolean {
+  const normalized = normalizeScanKeyChars(displayText);
+  if (!normalized || normalized === "estimated") {
+    return true;
+  }
+  if (isCookieOrPrivacyChrome(normalized)) {
+    return true;
+  }
+  if (/\bopens the\b/.test(normalized) && normalized.length < 120) {
+    return true;
+  }
+  return shouldExcludeScrapedLabel(displayText, normalized, new Set());
+}
+
 export function shouldExcludeScrapedLabel(
   displayText: string,
   normalized: string,
@@ -313,6 +364,12 @@ export function shouldExcludeScrapedLabel(
 ): boolean {
   if (knownNormalizedSet.has(normalized)) {
     return false;
+  }
+  if (normalized === "estimated" || isCookieOrPrivacyChrome(normalized)) {
+    return true;
+  }
+  if (/\bopens the\b/.test(normalized) && !hasFoodWordHint(normalized)) {
+    return true;
   }
   if (isRestaurantRailCategory(normalized)) {
     return true;

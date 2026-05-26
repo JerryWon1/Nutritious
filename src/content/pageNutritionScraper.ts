@@ -26,6 +26,8 @@ function columnIndices(headerCells: string[]): {
   protein: number;
   carbs: number;
   fat: number;
+  fiber: number;
+  sugar: number;
 } | null {
   const lower = headerCells.map((c) => c.toLowerCase());
 
@@ -39,11 +41,17 @@ function columnIndices(headerCells: string[]): {
   if (fat < 0) {
     fat = lower.findIndex((h) => h.includes("total fat"));
   }
+  const fiber = lower.findIndex(
+    (h) => h.includes("dietary fiber") || h === "fiber" || (h.includes("fiber") && !h.includes("sugar"))
+  );
+  const sugar = lower.findIndex(
+    (h) => h.includes("total sugar") || h === "sugars" || h === "sugar" || h.includes("added sugar")
+  );
 
   if (cal < 0 || protein < 0 || carbs < 0 || fat < 0) {
     return null;
   }
-  return { cal, protein, carbs, fat };
+  return { cal, protein, carbs, fat, fiber, sugar };
 }
 
 /**
@@ -96,18 +104,27 @@ export function scrapeNutritionTables(root: Document | HTMLElement): PageNutriti
       const protein = parseNumberCell(cells[indices.protein] ?? "");
       const carbs = parseNumberCell(cells[indices.carbs] ?? "");
       const fat = parseNumberCell(cells[indices.fat] ?? "");
+      const fiber = indices.fiber >= 0 ? parseNumberCell(cells[indices.fiber] ?? "") : 0;
+      const sugar = indices.sugar >= 0 ? parseNumberCell(cells[indices.sugar] ?? "") : 0;
 
       if (calories <= 0 && protein <= 0 && carbs <= 0 && fat <= 0) {
         continue;
       }
 
-      results.push({
+      const hint: PageNutritionHint = {
         key: normalizeFoodName(name),
         calories,
         protein,
         carbs,
         fat
-      });
+      };
+      if (fiber > 0) {
+        hint.fiber = fiber;
+      }
+      if (sugar > 0) {
+        hint.sugar = sugar;
+      }
+      results.push(hint);
     }
   }
 

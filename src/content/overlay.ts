@@ -1,6 +1,6 @@
 import { getMacroPercentages } from "../core/macroMath";
 import { getRecommendations } from "../core/recommendationEngine";
-import type { MacroGoals, NutritionItem } from "../core/types";
+import type { GoalSettings, NutritionItem } from "../core/types";
 
 export interface OverlayEntry {
   target: HTMLElement;
@@ -28,9 +28,13 @@ function ensureRoot(): HTMLDivElement {
   return root;
 }
 
-function createCard(item: NutritionItem, goals: MacroGoals): HTMLDivElement {
-  const percentages = getMacroPercentages(item, goals);
-  const recommendations = getRecommendations(item, goals);
+function createCard(item: NutritionItem, settings: GoalSettings): HTMLDivElement {
+  const percentages = getMacroPercentages(
+    item,
+    settings.macroGoals,
+    settings.trackedMacros
+  );
+  const recommendations = getRecommendations(item, settings);
   const card = document.createElement("div");
   card.style.position = "absolute";
   card.style.pointerEvents = "none";
@@ -45,7 +49,7 @@ function createCard(item: NutritionItem, goals: MacroGoals): HTMLDivElement {
   card.style.boxShadow = "0 6px 18px rgba(0,0,0,0.25)";
 
   const recommendationText = recommendations
-    .map((rec) => `${rec.name} (${rec.protein}g P, ${rec.calories} cal)`)
+    .map((rec) => `${rec.item.name} (${rec.item.protein}g P, ${rec.item.calories} cal)`)
     .join(" | ");
 
   card.innerHTML = `
@@ -76,12 +80,12 @@ export function clearOverlays(): void {
   }
 }
 
-export function renderOverlays(entries: OverlayEntry[], goals: MacroGoals): void {
+export function renderOverlays(entries: OverlayEntry[], settings: GoalSettings): void {
   clearOverlays();
   const root = ensureRoot();
 
   for (const entry of entries) {
-    const card = createCard(entry.item, goals);
+    const card = createCard(entry.item, settings);
     const pos = cardPositionFor(entry.target);
     card.style.top = `${pos.top}px`;
     card.style.left = `${Math.max(window.scrollX + 8, pos.left)}px`;

@@ -26,11 +26,15 @@ export function estimateNutritionFromName(rawName: string): EstimatedNutrition {
   let protein = 20;
   let carbs = 35;
   let fat = 14;
+  let fiber = 4;
+  let sugar = 12;
   const reasons: string[] = [];
 
   if (/(salad|veggie|vegetable)/.test(lower)) {
     carbs -= 10;
     fat -= 3;
+    fiber += 6;
+    sugar -= 4;
     reasons.push("vegetable/salad keyword");
   }
   if (/(bowl|rice|burrito|pasta|noodle)/.test(lower)) {
@@ -44,7 +48,14 @@ export function estimateNutritionFromName(rawName: string): EstimatedNutrition {
   if (/(fried|crispy|breaded|burger|fries|cheese|bacon|mayo)/.test(lower)) {
     fat += 10;
     protein += 2;
+    sugar += 4;
+    fiber -= 2;
     reasons.push("fried/high-fat keyword");
+  }
+  if (/(dessert|cookie|cake|shake|soda|sweet|frappuccino|syrup)/.test(lower)) {
+    sugar += 18;
+    fiber -= 1;
+    reasons.push("sweet/dessert keyword");
   }
   if (/(wrap|sandwich|taco|quesadilla)/.test(lower)) {
     carbs += 10;
@@ -55,6 +66,8 @@ export function estimateNutritionFromName(rawName: string): EstimatedNutrition {
   protein = clamp(Math.round(protein), 8, 55);
   carbs = clamp(Math.round(carbs), 8, 90);
   fat = clamp(Math.round(fat), 4, 45);
+  fiber = clamp(Math.round(fiber), 0, 25);
+  sugar = clamp(Math.round(sugar), 0, 80);
   let calories = Math.round(protein * 4 + carbs * 4 + fat * 9);
 
   const closest = findClosestNutritionItem(name);
@@ -72,6 +85,8 @@ export function estimateNutritionFromName(rawName: string): EstimatedNutrition {
     protein = clamp(Math.round(t.protein * scale), 4, 80);
     carbs = clamp(Math.round(t.carbs * scale), 4, 120);
     fat = clamp(Math.round(t.fat * scale), 2, 70);
+    fiber = clamp(Math.round((t.fiber ?? fiber) * scale), 0, 25);
+    sugar = clamp(Math.round((t.sugar ?? sugar) * scale), 0, 80);
     calories = Math.round(protein * 4 + carbs * 4 + fat * 9);
     const src = t.nutritionSource ? ` (${t.nutritionSource})` : "";
     noteParts.push(
@@ -92,7 +107,9 @@ export function estimateNutritionFromName(rawName: string): EstimatedNutrition {
       calories,
       protein,
       carbs,
-      fat
+      fat,
+      fiber,
+      sugar
     },
     confidence,
     note

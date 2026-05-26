@@ -1,6 +1,6 @@
 {
   "name": "nutritious-extension",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -8,14 +8,20 @@
     "build:content": "vite build --config vite.content.config.ts",
     "dev": "vite build --watch",
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:verbose": "vitest run --reporter=verbose",
     "extract-pdf": "node scripts/extractPdfText.mjs",
-    "package": "npm run build && mkdir -p releases && rm -f releases/nutritious-extension-0.1.0-alpha.zip && (cd dist && zip -r ../releases/nutritious-extension-0.1.0-alpha.zip .)"
+    "validate-db": "node scripts/validateNutritionDb.mjs",
+    "download-nutrition-pdfs": "node scripts/downloadOfficialNutritionPdfs.mjs",
+    "package": "npm run build && mkdir -p releases && rm -f releases/nutritious-extension-1.0.0.zip && (cd dist && zip -r ../releases/nutritious-extension-1.0.0.zip .)",
+    "package:alpha": "npm run build && mkdir -p releases && rm -f releases/nutritious-extension-0.1.0-alpha.zip && (cd dist && zip -r ../releases/nutritious-extension-0.1.0-alpha.zip .)"
   },
   "devDependencies": {
     "@types/chrome": "^0.0.315",
     "@types/node": "^22.15.17",
     "typescript": "^5.8.3",
-    "vite": "^5.4.11"
+    "vite": "^5.4.11",
+    "vitest": "^3.0.5"
   },
   "dependencies": {
     "pdfjs-dist": "^4.10.38"

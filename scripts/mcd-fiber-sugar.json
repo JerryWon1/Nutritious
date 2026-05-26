@@ -1,0 +1,164 @@
+{
+  "Big Mac": {
+    "fiber": 10,
+    "sugar": 1,
+    "protein": 80
+  },
+  "McChicken": {
+    "fiber": 40,
+    "sugar": 2,
+    "protein": 8
+  },
+  "10 pc nuggets": null,
+  "6 pc nuggets": null,
+  "4 pc nuggets": null,
+  "20 pc nuggets": null,
+  "Quarter Pounder": {
+    "fiber": 3,
+    "sugar": 10,
+    "protein": 31
+  },
+  "Hamburger": {
+    "fiber": 3,
+    "sugar": 0,
+    "protein": 30
+  },
+  "Cheeseburger": {
+    "fiber": 33,
+    "sugar": 2,
+    "protein": 7
+  },
+  "McDouble": {
+    "fiber": 8,
+    "sugar": 1,
+    "protein": 70
+  },
+  "Double Cheeseburger": {
+    "fiber": 11,
+    "sugar": 1,
+    "protein": 85
+  },
+  "Double Quarter": {
+    "fiber": 3,
+    "sugar": 10,
+    "protein": 50
+  },
+  "Small Fries": {
+    "fiber": 2,
+    "sugar": 0,
+    "protein": 2
+  },
+  "Medium Fries": {
+    "fiber": 4,
+    "sugar": 0,
+    "protein": 4
+  },
+  "Large Fries": {
+    "fiber": 5,
+    "sugar": 0,
+    "protein": 6
+  },
+  "Kids Fries": {
+    "fiber": 1,
+    "sugar": 0,
+    "protein": 0
+  },
+  "Egg McMuffin": {
+    "fiber": 5,
+    "sugar": 0,
+    "protein": 26
+  },
+  "Sausage Burrito": {
+    "fiber": 7,
+    "sugar": 0,
+    "protein": 11
+  },
+  "Sausage McMuffin": {
+    "fiber": 10,
+    "sugar": 0,
+    "protein": 28
+  },
+  "Filet-O-Fish": {
+    "fiber": 4,
+    "sugar": 0,
+    "protein": 40
+  },
+  "Hash Browns": {
+    "fiber": 2,
+    "sugar": 0,
+    "protein": 1
+  },
+  "Artisan Grilled Chicken": {
+    "fiber": 43,
+    "sugar": 3,
+    "protein": 11
+  },
+  "Buttermilk Crispy": {
+    "fiber": 5,
+    "sugar": 15,
+    "protein": 40
+  },
+  "Spicy McChicken": null,
+  "McFlurry OREO": null,
+  "Apple Pie": null,
+  "Bacon Egg Biscuit": null,
+  "Sausage Egg McGriddles": {
+    "fiber": 12,
+    "sugar": 0,
+    "protein": 26
+  },
+  "Sausage McGriddles": {
+    "fiber": 8,
+    "sugar": 0,
+    "protein": 35
+  },
+  "Big Breakfast": null,
+  "Ranch Snack Wrap Crispy": null,
+  "McWrap Ranch Crispy": null,
+  "Bacon Clubhouse Burger": {
+    "fiber": 4,
+    "sugar": 14,
+    "protein": 40
+  },
+  "Bacon Clubhouse Grilled": {
+    "fiber": 8,
+    "sugar": 0,
+    "protein": 12
+  },
+  "McWrap Sweet Chili Grilled": null,
+  "SW Salad Grilled": {
+    "fiber": 4,
+    "sugar": 0,
+    "protein": 90
+  },
+  "Asian Salad Grilled": {
+    "fiber": 1,
+    "sugar": 0,
+    "protein": 75
+  },
+  "Bacon Ranch Salad Crispy": {
+    "fiber": 8,
+    "sugar": 0,
+    "protein": 85
+  },
+  "SW Salad Crispy": {
+    "fiber": 6,
+    "sugar": 0,
+    "protein": 75
+  },
+  "Asian Salad Crispy": {
+    "fiber": 35,
+    "sugar": 6,
+    "protein": 24
+  },
+  "Bacon Ranch Salad Buttermilk": {
+    "fiber": 8,
+    "sugar": 0,
+    "protein": 10
+  },
+  "Bacon Ranch Salad Grilled": {
+    "fiber": 6,
+    "sugar": 0,
+    "protein": 11
+  }
+}

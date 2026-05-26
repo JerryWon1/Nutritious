@@ -1,4 +1,5 @@
 import { estimateNutritionFromName } from "./macroEstimator";
+import { knownMacrosForResolved, type MacroKnownMap } from "./macroKnown";
 import { findNutritionItemByName, normalizeFoodName } from "./nutritionDatabase";
 import type { NutritionItem } from "./types";
 import { findUserNutritionMatch, type UserNutritionRow } from "./userNutritionCsv";
@@ -12,22 +13,27 @@ export interface PageNutritionHint {
   protein: number;
   carbs: number;
   fat: number;
+  fiber?: number;
+  sugar?: number;
 }
 
 export interface ResolvedNutrition {
   item: NutritionItem;
   source: NutritionSource;
   note?: string;
+  knownMacros: MacroKnownMap;
 }
 
 export interface ResolveContext {
   userRows: UserNutritionRow[];
   pageHints: PageNutritionHint[];
   pdfHints: PageNutritionHint[];
+  /** From hostname/title detection */
+  detectedRestaurant?: string | null;
 }
 
 function hintToItem(hint: PageNutritionHint, displayName: string, source: NutritionSource): NutritionItem {
-  return {
+  const item: NutritionItem = {
     id: `${source}_${hint.key.replace(/\s+/g, "_")}`,
     name: displayName.trim(),
     restaurant: source === "page" ? "This page" : "PDF on page",
@@ -36,6 +42,26 @@ function hintToItem(hint: PageNutritionHint, displayName: string, source: Nutrit
     protein: Math.round(hint.protein),
     carbs: Math.round(hint.carbs),
     fat: Math.round(hint.fat)
+  };
+  if (hint.fiber != null) {
+    item.fiber = Math.round(hint.fiber);
+  }
+  if (hint.sugar != null) {
+    item.sugar = Math.round(hint.sugar);
+  }
+  return item;
+}
+
+function wrapResolved(
+  item: NutritionItem,
+  source: NutritionSource,
+  note?: string
+): ResolvedNutrition {
+  return {
+    item,
+    source,
+    note,
+    knownMacros: knownMacrosForResolved(item, source)
   };
 }
 
@@ -125,12 +151,15 @@ function enrichHintMacrosFromEstimate(rawName: string, hint: PageNutritionHint):
 export function resolveNutritionForName(rawName: string, ctx: ResolveContext): ResolvedNutrition {
   const csvItem = findUserNutritionMatch(ctx.userRows, rawName);
   if (csvItem) {
-    return { item: csvItem, source: "csv" };
+    return wrapResolved(csvItem, "csv");
   }
 
-  const dbItem = findNutritionItemByName(rawName);
+  const dbItem = findNutritionItemByName(rawName, ctx.detectedRestaurant);
   if (dbItem) {
-    return { item: dbItem, source: "database" };
+    const note = ctx.detectedRestaurant
+      ? `Matched built-in database (${ctx.detectedRestaurant} site detected).`
+      : undefined;
+    return wrapResolved(dbItem, "database", note);
   }
 
   const pageHint = findHintMatch(ctx.pageHints, rawName);
@@ -139,15 +168,16 @@ export function resolveNutritionForName(rawName: string, ctx: ResolveContext): R
     const hadFullMacros = macroScore >= 3;
     const hadPartialMacros = macroScore >= 1 && macroScore < 3;
     const enriched = enrichHintMacrosFromEstimate(rawName, pageHint);
-    return {
-      item: hintToItem(enriched, rawName, "page"),
-      source: "page",
-      note: hadFullMacros
+    const item = hintToItem(enriched, rawName, "page");
+    return wrapResolved(
+      item,
+      "page",
+      hadFullMacros
         ? "Pulled from a nutrition table on the current page."
         : hadPartialMacros
           ? "Partial macros from this page; remaining values scaled to match calories."
           : "Calories from text on this page (e.g. menu card); protein/carbs/fat scaled from the keyword estimate to match those calories."
-    };
+    );
   }
 
   const pdfHint = findHintMatch(ctx.pdfHints, rawName);
@@ -156,21 +186,18 @@ export function resolveNutritionForName(rawName: string, ctx: ResolveContext): R
     const hadFullMacros = macroScore >= 3;
     const hadPartialMacros = macroScore >= 1 && macroScore < 3;
     const enriched = enrichHintMacrosFromEstimate(rawName, pdfHint);
-    return {
-      item: hintToItem(enriched, rawName, "pdf"),
-      source: "pdf",
-      note: hadFullMacros
+    const item = hintToItem(enriched, rawName, "pdf");
+    return wrapResolved(
+      item,
+      "pdf",
+      hadFullMacros
         ? "Parsed from PDF text linked or embedded on this page (best effort)."
         : hadPartialMacros
           ? "Partial macros from PDF text; remaining values scaled to match calories."
           : "Calories parsed from PDF text on this page; macros scaled from the keyword estimate to match those calories."
-    };
+    );
   }
 
   const estimated = estimateNutritionFromName(rawName);
-  return {
-    item: estimated.item,
-    source: "estimated",
-    note: estimated.note
-  };
+  return wrapResolved(estimated.item, "estimated", estimated.note);
 }

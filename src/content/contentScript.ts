@@ -3,12 +3,14 @@ import {
   dedupeMenuItemNames,
   dedupeScannedTitlesPreferringDishHeading,
   hasFoodWordHint,
+  isJunkMenuLabel,
   shouldExcludeScrapedLabel,
   singleWordMenuAllowed
 } from "./menuItemFilters";
 import { mergePageNutritionHints, scrapeInlineMenuCalories, scrapeNutritionTables } from "./pageNutritionScraper";
 import { extractPdfNutritionHints } from "./pdfNutritionExtract";
 import type { PageNutritionHint } from "../core/nutritionResolver";
+import { openSidebar, persistSidebarOpen, shouldRestoreSidebar, toggleSidebar } from "./sidebarHost";
 
 const RESCAN_DELAY_MS = 300;
 let scanTimer: number | null = null;
@@ -172,7 +174,8 @@ function scanCurrentPage(): string[] {
     }
   }
 
-  return dedupeScannedTitlesPreferringDishHeading(dedupeMenuItemNames(Array.from(results)));
+  const deduped = dedupeScannedTitlesPreferringDishHeading(dedupeMenuItemNames(Array.from(results)));
+  return deduped.filter((name) => !isJunkMenuLabel(name));
 }
 
 function scheduleScan(): void {
@@ -207,9 +210,17 @@ chrome.runtime.onMessage.addListener(
         itemNames: string[];
         pageNutritionHints: PageNutritionHint[];
         pdfNutritionHints: PageNutritionHint[];
+        pageUrl?: string;
+        pageTitle?: string;
       }
     ) => void
   ) => {
+    if (message.type === "NUTRITIOUS_TOGGLE_SIDEBAR") {
+      const open = toggleSidebar();
+      void persistSidebarOpen(open);
+      sendResponse?.({ open });
+      return undefined;
+    }
     if (message.type === "NUTRITIOUS_SETTINGS_UPDATED") {
       scheduleScan();
       return undefined;
@@ -230,7 +241,9 @@ chrome.runtime.onMessage.addListener(
         sendResponse({
           itemNames: latestItemNames,
           pageNutritionHints,
-          pdfNutritionHints
+          pdfNutritionHints,
+          pageUrl: location.href,
+          pageTitle: document.title
         });
       })();
       return true;
@@ -239,11 +252,14 @@ chrome.runtime.onMessage.addListener(
   }
 );
 
-function init(): void {
+async function init(): Promise<void> {
   startObserver();
   scheduleScan();
   window.addEventListener("scroll", scheduleScan, { passive: true });
   window.addEventListener("resize", scheduleScan);
+  if (await shouldRestoreSidebar()) {
+    await openSidebar();
+  }
 }
 
-init();
+void init();

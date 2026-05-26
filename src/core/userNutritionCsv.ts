@@ -1,4 +1,4 @@
-import type { NutritionItem } from "./types";
+import type { DietFlagKey, DietFlags, NutritionItem } from "./types";
 import { normalizeFoodName } from "./nutritionDatabase";
 
 const STORAGE_KEY = "nutritionUserCsvRows";
@@ -10,7 +10,10 @@ export interface UserNutritionRow {
   protein: number;
   carbs: number;
   fat: number;
+  fiber?: number;
+  sugar?: number;
   aliases: string[];
+  diet?: DietFlags;
 }
 
 export async function loadUserNutritionRows(): Promise<UserNutritionRow[]> {
@@ -23,7 +26,7 @@ export async function saveUserNutritionRows(rows: UserNutritionRow[]): Promise<v
   await chrome.storage.local.set({ [STORAGE_KEY]: rows });
 }
 
-/** Minimal CSV: header row required. Columns: name,calories,protein,carbs,fat[,restaurant][,aliases] */
+/** Minimal CSV: name,calories,protein,carbs,fat[,fiber][,sugar][,restaurant][,aliases] */
 export function parseNutritionCsv(text: string): UserNutritionRow[] {
   const lines = text.split(/\r?\n/).filter((line) => line.trim().length > 0);
   if (lines.length < 2) {
@@ -36,8 +39,25 @@ export function parseNutritionCsv(text: string): UserNutritionRow[] {
   const pIdx = header.findIndex((h) => h === "protein" || h === "p");
   const cIdx = header.findIndex((h) => (h.includes("carb") && !h.includes("fiber")) || h === "carbs");
   const fIdx = header.findIndex((h) => h === "fat" || (h.includes("fat") && !h.includes("saturated")));
+  const fiberIdx = header.findIndex(
+    (h) => h === "fiber" || h.includes("dietary fiber") || h.includes("fibre")
+  );
+  const sugarIdx = header.findIndex(
+    (h) => h === "sugar" || h === "sugars" || h.includes("total sugar") || h.includes("added sugar")
+  );
   const restIdx = header.findIndex((h) => h === "restaurant" || h === "brand");
   const aliasIdx = header.findIndex((h) => h === "aliases" || h === "alias");
+  const vegIdx = header.findIndex((h) => h === "vegetarian" || h === "veg");
+  const veganIdx = header.findIndex((h) => h === "vegan");
+  const gfIdx = header.findIndex(
+    (h) => h === "gluten_free" || h === "glutenfree" || h === "gluten-free" || h === "gf"
+  );
+  const dfIdx = header.findIndex(
+    (h) => h === "dairy_free" || h === "dairyfree" || h === "dairy-free" || h === "df"
+  );
+  const nfIdx = header.findIndex(
+    (h) => h === "nut_free" || h === "nutfree" || h === "nut-free" || h === "nf" || h === "peanut_free"
+  );
 
   if (nameIdx < 0 || calIdx < 0 || pIdx < 0 || cIdx < 0 || fIdx < 0) {
     return [];
@@ -55,7 +75,7 @@ export function parseNutritionCsv(text: string): UserNutritionRow[] {
       ? aliasesRaw.split(/[|;]/).map((a) => a.trim()).filter(Boolean)
       : [];
 
-    rows.push({
+    const row: UserNutritionRow = {
       name,
       restaurant: restIdx >= 0 ? cells[restIdx]?.trim() || "Custom" : "Custom",
       calories: parseNumericCell(cells[calIdx]),
@@ -63,7 +83,30 @@ export function parseNutritionCsv(text: string): UserNutritionRow[] {
       carbs: parseNumericCell(cells[cIdx]),
       fat: parseNumericCell(cells[fIdx]),
       aliases
+    };
+    if (fiberIdx >= 0) {
+      const fiber = parseNumericCell(cells[fiberIdx]);
+      if (fiber > 0) {
+        row.fiber = fiber;
+      }
+    }
+    if (sugarIdx >= 0) {
+      const sugar = parseNumericCell(cells[sugarIdx]);
+      if (sugar > 0) {
+        row.sugar = sugar;
+      }
+    }
+    const diet = parseDietFromCells(cells, {
+      vegetarian: vegIdx,
+      vegan: veganIdx,
+      glutenFree: gfIdx,
+      dairyFree: dfIdx,
+      nutFree: nfIdx
     });
+    if (diet) {
+      row.diet = diet;
+    }
+    rows.push(row);
   }
   return rows;
 }
@@ -92,6 +135,40 @@ function splitCsvLine(line: string): string[] {
   return result.map((s) => s.trim());
 }
 
+function parseBoolCell(raw: string | undefined): boolean | undefined {
+  if (!raw) {
+    return undefined;
+  }
+  const v = raw.trim().toLowerCase();
+  if (v === "1" || v === "true" || v === "yes" || v === "y") {
+    return true;
+  }
+  if (v === "0" || v === "false" || v === "no" || v === "n") {
+    return false;
+  }
+  return undefined;
+}
+
+function parseDietFromCells(
+  cells: string[],
+  idx: Record<DietFlagKey, number>
+): DietFlags | undefined {
+  const diet: DietFlags = {};
+  let any = false;
+  for (const key of Object.keys(idx) as DietFlagKey[]) {
+    const i = idx[key];
+    if (i < 0) {
+      continue;
+    }
+    const val = parseBoolCell(cells[i]);
+    if (val !== undefined) {
+      diet[key] = val;
+      any = true;
+    }
+  }
+  return any ? diet : undefined;
+}
+
 function parseNumericCell(raw: string | undefined): number {
   if (!raw) {
     return 0;
@@ -100,9 +177,9 @@ function parseNumericCell(raw: string | undefined): number {
   return Number.isFinite(n) ? n : 0;
 }
 
-function rowToNutritionItem(row: UserNutritionRow): NutritionItem {
+export function rowToNutritionItem(row: UserNutritionRow): NutritionItem {
   const id = `csv_${normalizeFoodName(row.name).replace(/\s+/g, "_")}`;
-  return {
+  const item: NutritionItem = {
     id,
     name: row.name,
     restaurant: row.restaurant,
@@ -112,6 +189,20 @@ function rowToNutritionItem(row: UserNutritionRow): NutritionItem {
     carbs: Math.round(row.carbs),
     fat: Math.round(row.fat)
   };
+  if (row.fiber != null && row.fiber > 0) {
+    item.fiber = Math.round(row.fiber);
+  }
+  if (row.sugar != null && row.sugar > 0) {
+    item.sugar = Math.round(row.sugar);
+  }
+  if (row.diet) {
+    item.diet = { ...row.diet };
+  }
+  return item;
+}
+
+export function userRowsToNutritionItems(rows: UserNutritionRow[]): NutritionItem[] {
+  return rows.map(rowToNutritionItem);
 }
 
 function indexKeysForRow(row: UserNutritionRow): string[] {
