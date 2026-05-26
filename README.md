@@ -6,18 +6,6 @@ Nutritious is a **Manifest V3** Chrome extension that helps you compare quick-se
 
 ---
 
-## For instructors / submission checklist
-
-| Deliverable | What to do |
-|-------------|------------|
-| **GitHub repository** | Push this project to **[github.com/JerryWon1/Nutritious](https://github.com/JerryWon1/Nutritious)**. Use **`https://github.com/JerryWon1/Nutritious`** as the submission link (or the `.git` clone URL if the form asks for that). |
-| **Release notes on GitHub** | Create a [GitHub Release](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository) (e.g. tag `v1.0.0`). Copy from **`docs/GITHUB_RELEASE_v1.0.0.md`**. |
-| **Release `.zip` for Chrome** | Run **`npm run package`** locally. Upload **`releases/nutritious-extension-1.0.0.zip`** to the release. Recipients unzip and use **Load unpacked** on the folder that contains `manifest.json`. |
-| **Test cases & results** | Run **`npm test`** and attach or link **`docs/TEST_CASES_AND_RESULTS.md`** for submission. |
-| **Full submission checklist** | See **`docs/SUBMISSION.md`** (links, zip, Web Store, release steps). |
-
----
-
 ## How to install (from source / developers)
 
 1. **Clone** the repository (or your fork):
